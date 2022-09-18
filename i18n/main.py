@@ -2,13 +2,14 @@
 Author: iptoday wangdong1221@outlook.com
 Date: 2022-07-21 19:42:48
 LastEditors: iptoday wangdong1221@outlook.com
-LastEditTime: 2022-07-21 23:53:17
+LastEditTime: 2022-09-15 17:22:18
 FilePath: /i18n/main.py
 
 Copyright (c) 2022 by iptoday wangdong1221@outlook.com, All Rights Reserved. 
 '''
 
 
+import operator
 import json
 import os
 import sys
@@ -53,10 +54,16 @@ def translation(value, dest, index=1):
     '''
     if type(value) == str:
         print('当前处理内容: %s' % value)
-        # sleep(5)
         try:
+            contains = operator.contains(value, '$value')
+            if contains:
+                value = value.replace('$value', '3')
             translator = Translator()
-            return translator.translate(value, src='zh-CN', dest=dest).text
+            result = translator.translate(value, src='zh-CN', dest=dest).text
+            if contains:
+                print('当前内容存在变量')
+                result = result.replace('3', '$value')
+            return result
         except:
             sleep(index*5)
             return translation(value, dest, index+1)
