@@ -2,7 +2,7 @@
 Author: iptoday wangdong1221@outlook.com
 Date: 2022-07-21 19:42:48
 LastEditors: iptoday wangdong1221@outlook.com
-LastEditTime: 2022-11-05 19:05:32
+LastEditTime: 2022-12-22 14:25:55
 FilePath: /i18n/main.py
 
 Copyright (c) 2022 by iptoday wangdong1221@outlook.com, All Rights Reserved. 
@@ -33,24 +33,36 @@ def main():
         f.close()
     for cj_item in config_json:
         print('当前正在处理: %s' % cj_item['zh'])
-        path = output+'/strings_'+cj_item['locale']+'.i18n.json'
+        path = output+'/'+cj_item['locale']+'.json'
         ignore = ['en']
         if cj_item['locale'] in ignore or os.path.exists(path):
             print('%s已存在' % cj_item['zh'])
             continue
         result = {}
         for oj_key in original_json:
-            result[oj_key] = translation(
-                original_json[oj_key],
-                cj_item['locale']
-            )
+            val = ''
+            if oj_key == 'title':
+                val = original_json[oj_key]
+            elif oj_key == 'locale':
+                val = cj_item['locale']
+            elif oj_key == 'raw':
+                val = cj_item['title']
+            elif oj_key == 'chinese':
+                val = cj_item['zh']
+            else:
+                val = translation(
+                    original_json['locale'],
+                    original_json[oj_key],
+                    cj_item['locale']
+                )
+            result[oj_key] = val
         with open(path, 'w', encoding='utf-8') as f:
             f.write(json.dumps(result, ensure_ascii=False))
             f.close()
     print('翻译结束')
 
 
-def translation(value, dest):
+def translation(src, value, dest):
     '''
     翻译单元
     '''
@@ -64,7 +76,7 @@ def translation(value, dest):
             if contains:
                 value = value.replace('$value', '3')
             translator = Translator()
-            result = translator.translate(value, src='en', dest=dest).text
+            result = translator.translate(value, src=src, dest=dest).text
             if contains:
                 print('当前内容存在变量')
                 result = result.replace('3', '$value')
@@ -76,12 +88,12 @@ def translation(value, dest):
     elif type(value) == dict:
         d = {}
         for key in value:
-            d[key] = translation(value[key], dest)
+            d[key] = translation(src, value[key], dest)
         return d
     elif type(value) == list:
         l = []
         for element in value:
-            l.append(translation(element, dest))
+            l.append(translation(src, element, dest))
         return l
 
 
